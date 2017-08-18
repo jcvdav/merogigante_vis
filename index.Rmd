@@ -1,0 +1,29 @@
+---
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+```
+
+```{r}
+suppressPackageStartupMessages({
+  library(leaflet)
+  library(dplyr)
+})
+```
+
+```{r}
+data <- read.csv("coords.csv") %>% 
+  magrittr::set_colnames(value = c("Site", "Lat", "Lon")) %>% 
+  filter(!is.na(Lat)) %>% 
+  group_by(Site) %>% 
+  summarize(Lat = mean(Lat),
+            Lon = mean(Lon),
+            N = n())
+
+leaflet() %>% 
+  addTiles() %>% 
+  addMarkers(lng = data$Lon, lat = data$Lat)
+```
+
