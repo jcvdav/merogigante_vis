@@ -1,0 +1,107 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+suppressPackageStartupMessages({
+  library(tweenr)
+  library(gganimate)
+  library(tidyverse)
+})
+
+windowsFonts(Raleway = windowsFont("Raleway"))
+```
+
+```{r}
+pal1 <- c("#969457", "#357c57")
+
+pal2 <- c("#b7e972", "#377368")
+```
+
+# Arribos CA
+
+## Paleta1
+
+```{r, fig.width = 8, fig.height = 4}
+read_csv("GSB_Landings.csv", col_types = cols()) %>% 
+  gather(Procedencia, Captura, -Year) %>% 
+  ggplot(aes(x = Year, y = Captura, color = Procedencia)) +
+  geom_line(size = 1.1) +
+  theme_classic() +
+  theme(legend.justification = c(0.5, 0.5),
+        legend.position = c(0.7, 0.7),
+        text = element_text(family = "Raleway", size = 18)) +
+  scale_color_manual(values = pal1) +
+  labs(x = "Año", y = "Arribos (Toneladas)") +
+  scale_x_continuous(breaks = seq(1920, 2010, 10), minor_breaks = NULL) +
+  scale_y_continuous(breaks = seq(0, 375, 75), minor_breaks = NULL)
+
+ggsave("Paleta1.tiff", dpi = 600, width = 16, height = 8)
+```
+
+## Paleta 2
+
+```{r, fig.width = 8, fig.height = 4}
+read_csv("GSB_Landings.csv", col_types = cols()) %>% 
+  gather(Procedencia, Captura, -Year) %>% 
+  ggplot(aes(x = Year, y = Captura, color = Procedencia)) +
+  geom_line(size = 1.1) +
+  theme_classic() +
+  theme(legend.justification = c(0.5, 0.5),
+        legend.position = c(0.7, 0.7),
+        text = element_text(family = "Raleway", size = 18)) +
+  scale_color_manual(values = pal2) +
+  labs(x = "Año", y = "Arribos (Toneladas)") +
+  scale_x_continuous(breaks = seq(1920, 2010, 10), minor_breaks = NULL) +
+  scale_y_continuous(breaks = seq(0, 375, 75), minor_breaks = NULL)
+
+ggsave("Paleta2.tiff", dpi = 600, width = 16, height = 8)
+
+```
+
+## Paleta 1 animada
+
+```{r}
+plot_data <- read_csv("GSB_Landings.csv", col_types = cols()) %>% 
+  gather(Procedencia, Arribos, -Year) %>% 
+  mutate(ease = "linear", x = Year) %>% 
+  rename(y = Arribos, id = Procedencia, time = Year) 
+
+tween_plot <- plot_data %>%
+  tween_elements(., "time", "id", "ease", nframes = 250) %>%   #using tweenr!
+  mutate(year = round(time), id = .group) %>%
+  left_join(plot_data, by = c("time", "y", "x", "id")) %>% 
+  rename(Procedencia = id) %>% 
+  ggplot(aes(x = x, y = y, frame = .frame, color = Procedencia)) +
+  geom_path(aes(group = Procedencia, cumulative = T), size = 1.1) +
+  theme_classic() +
+  theme(legend.justification = c(0.5, 0.5),
+        legend.position = c(0.7, 0.7),
+        text = element_text(family = "Raleway", size = 18)) +
+  scale_color_manual(values = pal1) +
+  labs(x = "Año", y = "Arribos (Toneladas)") +
+  scale_x_continuous(breaks = seq(1920, 2010, 10), minor_breaks = NULL) +
+  scale_y_continuous(breaks = seq(0, 375, 75), minor_breaks = NULL)
+
+gganimate(tween_plot, title_frame = FALSE, interval = 0.001, "Landings_CA.gif", ani.width = 800, ani.height = 500)
+
+```
+
+# Arribos Mexico
+
+```{r}
+read_csv("GSB_Landings_mx.csv", col_types = cols()) %>% 
+  ggplot(aes(x = Ano, y = Arribos)) +
+  geom_line(size = 1.1, color = "#357c57") +
+  geom_point(size = 2, color = "#357c57") +
+  theme_classic() +
+  theme(legend.justification = c(0.5, 0.5),
+        legend.position = c(0.7, 0.7),
+        text = element_text(family = "Raleway", size = 18)) +
+  labs(x = "Año", y = "Arribos (Toneladas)")
+
+ggsave("Mex.tiff", dpi = 600, width = 16, height = 8)
+
+```
+
