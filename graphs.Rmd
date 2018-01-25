@@ -33,7 +33,7 @@ read_csv("GSB_Landings.csv", col_types = cols()) %>%
         legend.position = c(0.7, 0.7),
         text = element_text(family = "Raleway", size = 18)) +
   scale_color_manual(values = pal1) +
-  labs(x = "Año", y = "Arribos (Toneladas)") +
+  labs(x = "Año", y = "Arribos comerciales de Mero Gigante en California (Toneladas)") +
   scale_x_continuous(breaks = seq(1920, 2010, 10), minor_breaks = NULL) +
   scale_y_continuous(breaks = seq(0, 375, 75), minor_breaks = NULL)
 
@@ -50,9 +50,9 @@ read_csv("GSB_Landings.csv", col_types = cols()) %>%
   theme_classic() +
   theme(legend.justification = c(0.5, 0.5),
         legend.position = c(0.7, 0.7),
-        text = element_text(family = "Raleway", size = 18)) +
+        text = element_text(family = "Raleway", size = 20)) +
   scale_color_manual(values = pal2) +
-  labs(x = "Año", y = "Arribos (Toneladas)") +
+  labs(x = "Año", y = "Arribos comerciales de Mero Gigante en California \n(Toneladas)") +
   scale_x_continuous(breaks = seq(1920, 2010, 10), minor_breaks = NULL) +
   scale_y_continuous(breaks = seq(0, 375, 75), minor_breaks = NULL)
 
@@ -98,8 +98,8 @@ read_csv("GSB_Landings_mx.csv", col_types = cols()) %>%
   theme_classic() +
   theme(legend.justification = c(0.5, 0.5),
         legend.position = c(0.7, 0.7),
-        text = element_text(family = "Raleway", size = 18)) +
-  labs(x = "Año", y = "Arribos (Toneladas)")
+        text = element_text(family = "Raleway", size = 20)) +
+  labs(x = "Año", y = "Arribos comerciales de Mero Gigante \n(Toneladas)")
 
 ggsave("Mex.tiff", dpi = 600, width = 16, height = 8)
 
