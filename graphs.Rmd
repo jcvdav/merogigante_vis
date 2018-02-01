@@ -21,6 +21,8 @@ windowsFonts(Raleway = windowsFont("Raleway"))
 pal1 <- c("#969457", "#357c57")
 
 pal2 <- c("#b7e972", "#377368")
+
+pal3 <- c("#969457", "#357c57", "#b7e972", "#377368")
 ```
 
 # Pesqueros
@@ -29,7 +31,7 @@ pal2 <- c("#b7e972", "#377368")
 
 ### Paleta1
 
-```{r, fig.width = 8, fig.height = 4}
+```{r, fig.width = 16, fig.height = 8}
 read_csv("GSB_Landings.csv", col_types = cols()) %>% 
   gather(Procedencia, Captura, -Year) %>% 
   ggplot(aes(x = Year, y = Captura, color = Procedencia)) +
@@ -41,14 +43,14 @@ read_csv("GSB_Landings.csv", col_types = cols()) %>%
   scale_color_manual(values = pal1) +
   labs(x = "Año", y = "Arribos comerciales de Mero Gigante en California (Toneladas)") +
   scale_x_continuous(breaks = seq(1920, 2010, 10), minor_breaks = NULL) +
-  scale_y_continuous(breaks = seq(0, 375, 75), minor_breaks = NULL)
+  scale_y_continuous(breaks = seq(0, 375, 75), minor_breaks = NULL, expand = c(0, 0))
 
 ggsave("Paleta1.tiff", dpi = 600, width = 16, height = 8)
 ```
 
 ### Paleta 2
 
-```{r, fig.width = 8, fig.height = 4}
+```{r, fig.width = 16, fig.height = 8}
 read_csv("GSB_Landings.csv", col_types = cols()) %>% 
   gather(Procedencia, Captura, -Year) %>% 
   ggplot(aes(x = Year, y = Captura, color = Procedencia)) +
@@ -60,7 +62,7 @@ read_csv("GSB_Landings.csv", col_types = cols()) %>%
   scale_color_manual(values = pal2) +
   labs(x = "Año", y = "Arribos comerciales de Mero Gigante en California \n(Toneladas)") +
   scale_x_continuous(breaks = seq(1920, 2010, 10), minor_breaks = NULL) +
-  scale_y_continuous(breaks = seq(0, 375, 75), minor_breaks = NULL)
+  scale_y_continuous(breaks = seq(0, 375, 75), minor_breaks = NULL, expand = c(0, 0))
 
 ggsave("Paleta2.tiff", dpi = 600, width = 16, height = 8)
 
@@ -96,7 +98,7 @@ gganimate(tween_plot, title_frame = FALSE, interval = 0.001, "Landings_CA.gif", 
 
 ## Arribos Mexico
 
-```{r}
+```{r, fig.width = 16, fig.height = 8}
 read_csv("GSB_Landings_mx.csv", col_types = cols()) %>% 
   ggplot(aes(x = Ano, y = Arribos)) +
   geom_line(size = 1.1, color = "#357c57") +
@@ -105,7 +107,8 @@ read_csv("GSB_Landings_mx.csv", col_types = cols()) %>%
   theme(legend.justification = c(0.5, 0.5),
         legend.position = c(0.7, 0.7),
         text = element_text(family = "Raleway", size = 20)) +
-  labs(x = "Año", y = "Arribos comerciales de Mero Gigante \n(Toneladas)")
+  labs(x = "Año", y = "Arribos comerciales de Mero Gigante \n(Toneladas)") +
+  scale_x_continuous(expand = c(0,0))
 
 ggsave("Mex.tiff", dpi = 600, width = 16, height = 8)
 
@@ -136,17 +139,40 @@ colectores <- group_by(bio, site, collector) %>%
 plotly::ggplotly(colectores)
 ```
 
+## Histogramas
+
+```{r}
+tl <- ggplot(bio, aes(x = total_length)) +
+  geom_histogram(binwidth = 5 , fill = pal1[2], color = "black") +
+  theme_classic()
+
+tl2 <- ggplot(bio, aes(x = total_length)) +
+  geom_density(binwidth = 5 , fill = pal1[2], color = "black") +
+  theme_classic()
+
+tw <- ggplot(bio, aes(x = weight)) +
+  geom_histogram(binwidth = 5 , fill = pal1[2], color = "black") +
+  theme_classic()
+
+tw2 <- ggplot(bio, aes(x = weight)) +
+  geom_density(binwidth = 5 , fill = pal1[2], color = "black") +
+  theme_classic()
+
+cowplot::plot_grid(tl, tl2, tw, tw2, ncol = 2, labels = "AUTO")
+```
+
 ```{r}
 model <- lm(log10(weight)~log10(total_length), data = bio)
 
 tidy_model <- broom::tidy(model)
 glance_model <- broom::glance(model)
 
-text_linear <- c("log10(TW) = -5.0363 + log10(TL)^3.1198")
+text_linear <- c("log10(TW) = -5.0363 + log10(TL)^3.1198; R2 = 0.9793 (p < 0.001)")
 
-text_exp <- c("TW = 10^(-5.0363)*(TL^3.1198)")
+text_exp <- c("TW = 10^(-5.0363)*(TL^3.1198); R2 = 0.9793 (p < 0.001)")
 ```
 
+## TW vs TL
 
 ```{r, fig.width = 10, fig.height = 5}
 
@@ -158,11 +184,11 @@ LW <- filter(bio, !is.na(total_length),
   mutate(weight_notes = ifelse(is.na(weight_notes), "No notes", weight_notes),
          site = ifelse(is.na(site), "Missing", site)) %>% 
   ggplot(aes(x = total_length, y = weight)) +
+  geom_line(data = line, aes(x = x, y = y), linetype = "dashed") +
   geom_point(size = 2, alpha = 0.5, aes(color = weight_notes, site = site, otolitos = otoliths)) +
-  scale_color_brewer(palette = "Set1", direction = -1) +
+  scale_color_brewer(palette = pal3) +
   labs(x = "Total Length (cm)", y = "Total Weight (Kg)") +
-  ggtitle(text_exp) +
-  geom_line(data = line, aes(x = x, y = y))
+  ggtitle(text_exp)
 
 plotly::ggplotly(LW)
 ```
@@ -174,14 +200,13 @@ LW <- filter(bio, !is.na(total_length),
   mutate(weight_notes = ifelse(is.na(weight_notes), "No notes", weight_notes),
          site = ifelse(is.na(site), "Missing", site)) %>% 
   ggplot(aes(x = log10(total_length), y = log10(weight), color = weight_notes, site = site, otolitos = otoliths, Weight = weight, Length = total_length)) +
-  geom_point(size = 2, alpha = 0.5) +
-  scale_color_brewer(palette = "Set1", direction = -1) +
+  geom_abline(slope = 3.1198, intercept = -5.0363, linetype = "dashed") +
+  geom_point(size = 2) +
+  scale_color_brewer(palette = pal3) +
   labs(x = "Total Length (cm)", y = "Total Weight (Kg)") +
-  ggtitle(text_linear) +
-  geom_abline(slope = 3.1198, intercept = -5.0363)
+  ggtitle(text_linear)
 
 plotly::ggplotly(LW)
 ```
-
 
 
