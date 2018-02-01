@@ -2,6 +2,7 @@
 title: "R Notebook"
 output:
     html_notebook:
+      code_folding: hide
       toc: yes
       toc_float: yes
 ---
@@ -135,15 +136,52 @@ colectores <- group_by(bio, site, collector) %>%
 plotly::ggplotly(colectores)
 ```
 
+```{r}
+model <- lm(log10(weight)~log10(total_length), data = bio)
+
+tidy_model <- broom::tidy(model)
+glance_model <- broom::glance(model)
+
+text_linear <- c("log10(TW) = -5.0363 + log10(TL)^3.1198")
+
+text_exp <- c("TW = 10^(-5.0363)*(TL^3.1198)")
+```
+
+
+```{r, fig.width = 10, fig.height = 5}
+
+line <- data.frame(x = seq(0, 210, by = 1)) %>% 
+  mutate(y = 10^(-5.0363)*(x^3.1198))
+
+LW <- filter(bio, !is.na(total_length),
+             !is.na(weight)) %>%  
+  mutate(weight_notes = ifelse(is.na(weight_notes), "No notes", weight_notes),
+         site = ifelse(is.na(site), "Missing", site)) %>% 
+  ggplot(aes(x = total_length, y = weight)) +
+  geom_point(size = 2, alpha = 0.5, aes(color = weight_notes, site = site, otolitos = otoliths)) +
+  scale_color_brewer(palette = "Set1", direction = -1) +
+  labs(x = "Total Length (cm)", y = "Total Weight (Kg)") +
+  ggtitle(text_exp) +
+  geom_line(data = line, aes(x = x, y = y))
+
+plotly::ggplotly(LW)
+```
+
+
 ```{r, fig.width = 10, fig.height = 5}
 LW <- filter(bio, !is.na(total_length),
              !is.na(weight)) %>%  
   mutate(weight_notes = ifelse(is.na(weight_notes), "No notes", weight_notes),
          site = ifelse(is.na(site), "Missing", site)) %>% 
-  ggplot(aes(x = total_length, y = weight, color = weight_notes, site = site, otolitos = otoliths)) +
+  ggplot(aes(x = log10(total_length), y = log10(weight), color = weight_notes, site = site, otolitos = otoliths, Weight = weight, Length = total_length)) +
   geom_point(size = 2, alpha = 0.5) +
-  scale_color_brewer(palette = "Set1", direction = -1)
+  scale_color_brewer(palette = "Set1", direction = -1) +
+  labs(x = "Total Length (cm)", y = "Total Weight (Kg)") +
+  ggtitle(text_linear) +
+  geom_abline(slope = 3.1198, intercept = -5.0363)
 
 plotly::ggplotly(LW)
 ```
+
+
 
