@@ -1,6 +1,9 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output:
+    html_notebook:
+      toc: yes
+      toc_float: yes
 ---
 
 ```{r}
@@ -19,9 +22,11 @@ pal1 <- c("#969457", "#357c57")
 pal2 <- c("#b7e972", "#377368")
 ```
 
-# Arribos CA
+# Pesqueros
 
-## Paleta1
+## Arribos CA
+
+### Paleta1
 
 ```{r, fig.width = 8, fig.height = 4}
 read_csv("GSB_Landings.csv", col_types = cols()) %>% 
@@ -40,7 +45,7 @@ read_csv("GSB_Landings.csv", col_types = cols()) %>%
 ggsave("Paleta1.tiff", dpi = 600, width = 16, height = 8)
 ```
 
-## Paleta 2
+### Paleta 2
 
 ```{r, fig.width = 8, fig.height = 4}
 read_csv("GSB_Landings.csv", col_types = cols()) %>% 
@@ -60,7 +65,7 @@ ggsave("Paleta2.tiff", dpi = 600, width = 16, height = 8)
 
 ```
 
-## Paleta 1 animada
+### Paleta 1 animada
 
 ```{r}
 plot_data <- read_csv("GSB_Landings.csv", col_types = cols()) %>% 
@@ -88,7 +93,7 @@ gganimate(tween_plot, title_frame = FALSE, interval = 0.001, "Landings_CA.gif", 
 
 ```
 
-# Arribos Mexico
+## Arribos Mexico
 
 ```{r}
 read_csv("GSB_Landings_mx.csv", col_types = cols()) %>% 
@@ -103,5 +108,42 @@ read_csv("GSB_Landings_mx.csv", col_types = cols()) %>%
 
 ggsave("Mex.tiff", dpi = 600, width = 16, height = 8)
 
+```
+
+# Biologicos
+
+```{r}
+bio <- read.csv(file = "records.csv", stringsAsFactors = F) %>% 
+  select(Species, Site, Sale_price_pkg, Fish_Market_name, Catch_site, Pesca_Objetivo, Weight, Total_Length, Head_Length, Weight_notes, Otoliths, Collector) %>% 
+  magrittr::set_colnames(value = tolower(colnames(.)))
+```
+
+
+## Registros por persona
+
+```{r, fig.width = 10, fig.height = 10}
+colectores <- group_by(bio, site, collector) %>% 
+  count() %>% 
+  ggplot(aes(x = collector, y = n)) +
+  geom_col(aes(fill = site), color = "black") +
+  cowplot::theme_cowplot() +
+  theme(legend.justification = c(1, 1),
+        legend.position = c(0.9, 0.9)) +
+  scale_fill_brewer(palette = "Set1") +
+  ggExtra::rotateTextX()
+
+plotly::ggplotly(colectores)
+```
+
+```{r, fig.width = 10, fig.height = 5}
+LW <- filter(bio, !is.na(total_length),
+             !is.na(weight)) %>%  
+  mutate(weight_notes = ifelse(is.na(weight_notes), "No notes", weight_notes),
+         site = ifelse(is.na(site), "Missing", site)) %>% 
+  ggplot(aes(x = total_length, y = weight, color = weight_notes, site = site, otolitos = otoliths)) +
+  geom_point(size = 2, alpha = 0.5) +
+  scale_color_brewer(palette = "Set1", direction = -1)
+
+plotly::ggplotly(LW)
 ```
 
